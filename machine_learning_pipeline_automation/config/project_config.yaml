@@ -1,0 +1,43 @@
+# Project Configuration Template
+# 
+# This file contains project-level settings for the machine learning pipeline.
+# Customize these settings based on your specific project requirements.
+
+# Project Identification
+project_name: "ml_pipeline_project"
+project_id: null                        # Optional unique project identifier
+version: "1.0.0"
+
+# Data Paths
+data_directory: "./data"                 # Directory containing input data files
+output_directory: "./output"             # Directory for generated outputs
+metadata_file: null                      # Path to metadata file (auto-generated if null)
+
+# Caching Settings
+cache_enabled: true                      # Enable/disable data caching
+cache_directory: "./cache"               # Cache directory location
+cache_ttl: 3600                         # Cache time-to-live in seconds (1 hour)
+
+# Model Settings
+target_column: null                      # Name of the target variable (must be set)
+id_columns: null                        # List of ID columns to exclude from modeling
+reject_columns: null                    # List of columns to reject/ignore
+
+# Data Partitioning
+train_ratio: 0.7                        # Training set proportion
+test_ratio: 0.2                         # Test set proportion  
+validation_ratio: 0.1                   # Validation set proportion
+random_seed: 42                         # Random seed for reproducible splits
+
+# Variable Naming Constraints
+max_variable_name_length: 32            # Maximum length for variable names (SAS compatibility)
+
+# Example of a complete project configuration:
+#
+# project_name: "customer_churn_prediction"
+# project_id: "proj_001" 
+# target_column: "churn_flag"
+# id_columns: ["customer_id", "account_number"]
+# reject_columns: ["internal_notes", "created_timestamp"]
+# data_directory: "./data/customer_data"
+# metadata_file: "./data/customer_metadata.csv"
