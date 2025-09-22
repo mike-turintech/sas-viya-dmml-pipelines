@@ -1,0 +1,183 @@
+# Default Macro Variable Configuration
+# 
+# This file contains default mappings for SAS macro variables to their Python equivalents.
+# These variables are used throughout the machine learning pipeline for data paths,
+# variable lists, and processing settings.
+
+metadata:
+  version: '1.0'
+  description: 'Default SAS macro variable configuration for Python translation'
+  created_at: '2024-01-01T00:00:00'
+
+# Core SAS macro variables (&variable_name)
+variables:
+  
+  # Data and Library Paths
+  dm_data: null                          # Main dataset path/name - must be set by user
+  dm_lib: './output'                     # Output library/directory for results
+  dm_metadata: null                      # Metadata file path - auto-detected if possible
+  
+  # Generated File Paths
+  dm_file_scorecode: './output/scorecode.py'      # Python scoring code file
+  dm_file_deltacode: './output/deltacode.py'      # Python transformation code file
+  
+  # CAS/Server Settings (for SAS compatibility - not directly used in Python)
+  dm_cassessref: 'python_session'        # Session reference
+  dm_ds_caslib: 'CASUSER'               # CAS library reference
+  dm_memname: null                       # Dataset member name
+  dm_casiocalib: 'CASUSER'              # CAS I/O library reference
+  
+  # Variable Naming and Constraints
+  dm_maxNameLen: 32                     # Maximum variable name length
+  
+  # Partition Settings
+  dm_partition_statement: "partition role='TRAIN'"  # Default partition filter
+  
+  # Project Settings
+  dm_projectid: null                    # Project identifier
+  dm_nodeid: null                      # Node identifier
+  dm_runid: null                       # Run identifier
+  
+  # Additional Settings
+  dm_max_categorical_levels: 50         # Maximum levels for categorical variables
+  dm_min_numeric_unique: 10            # Minimum unique values to consider numeric
+  dm_categorical_threshold: 0.05       # Threshold for categorical detection
+
+
+# Template patterns for common SAS constructs
+templates:
+  
+  # Partition Filters
+  partition_filter_train: "data[data['_partition_'] == 'TRAIN']"
+  partition_filter_test: "data[data['_partition_'] == 'TEST']"
+  partition_filter_validate: "data[data['_partition_'] == 'VALIDATE']"
+  
+  # Code Generation Headers
+  score_code_header: |
+    # Generated Python Scoring Code
+    # Automatically generated from SAS model
+    # Date: {date}
+    import pandas as pd
+    import numpy as np
+  
+  delta_code_header: |
+    # Generated Python Delta Transformations
+    # Automatically generated from SAS transformations
+    # Date: {date}
+    import pandas as pd
+    import numpy as np
+  
+  # Common Data Loading Patterns
+  data_load_csv: |
+    # Load data from CSV file
+    data = pd.read_csv('{file_path}', 
+                      encoding='utf-8',
+                      na_values=['', 'NA', 'NULL', '.', 'null'],
+                      keep_default_na=True,
+                      low_memory=False)
+  
+  data_load_parquet: |
+    # Load data from Parquet file
+    data = pd.read_parquet('{file_path}')
+  
+  # Model Training Templates
+  logistic_regression_template: |
+    # Logistic Regression Model Training
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.model_selection import train_test_split
+    
+    # Prepare features and target
+    X = data[{feature_columns}]
+    y = data['{target_column}']
+    
+    # Split data
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y
+    )
+    
+    # Train model
+    model = LogisticRegression()
+    model.fit(X_train, y_train)
+  
+  # Variable Selection Templates
+  interval_input_selection: |
+    # Select interval (numeric) input variables
+    interval_vars = []
+    for col in data.columns:
+        if data[col].dtype in ['int64', 'float64'] and col != '{target_column}':
+            interval_vars.append(col)
+  
+  class_input_selection: |
+    # Select class (categorical) input variables
+    class_vars = []
+    for col in data.columns:
+        if data[col].dtype == 'object' and col != '{target_column}':
+            if data[col].nunique() <= {max_levels}:
+                class_vars.append(col)
+
+
+# Example Usage Instructions
+usage_examples:
+  basic_setup: |
+    # Basic setup example
+    from utils.config import ConfigManager
+    from utils.macro_variables import MacroVariableConfig
+    
+    # Initialize configuration
+    config_manager = ConfigManager()
+    config_manager.load_project_config()
+    
+    # Setup macro variables
+    macro_config = config_manager.setup_macro_variables()
+    
+    # Set data file
+    macro_config.set_variable('dm_data', 'data/training_data.csv')
+    
+    # Resolve variable lists (requires metadata)
+    interval_vars = macro_config.resolve_variable('dm_interval_input')
+    class_vars = macro_config.resolve_variable('dm_class_input')
+    target_var = macro_config.resolve_variable('dm_dec_target')
+  
+  template_substitution: |
+    # Template substitution example
+    sas_code = '''
+    proc logselect data=&dm_data;
+      class %dm_class_input;
+      model %dm_dec_target = %dm_interval_input %dm_class_input / link=logit;
+      &dm_partition_statement;
+    run;
+    '''
+    
+    # Substitute variables
+    python_equivalent = macro_config.substitute_variables(sas_code)
+  
+  configuration_validation: |
+    # Configuration validation example
+    errors = config_manager.validate_configuration()
+    if any(errors.values()):
+        print("Configuration errors found:")
+        for component, error_list in errors.items():
+            if error_list:
+                print(f"  {component}: {error_list}")
+    else:
+        print("Configuration is valid")
+
+
+# Notes for Users
+notes: |
+  1. This configuration file provides default mappings for SAS macro variables.
+  
+  2. Key variables that typically need to be set:
+     - dm_data: Path to your main dataset
+     - dm_metadata: Path to metadata file (optional, can be auto-generated)
+     - dm_lib: Output directory for generated files
+  
+  3. Variable list macros (%dm_interval_input, %dm_class_input, etc.) are resolved
+     automatically from metadata when available.
+  
+  4. Templates provide reusable code patterns for common SAS constructs.
+  
+  5. All paths can be absolute or relative to the project root directory.
+  
+  6. The configuration can be loaded and modified programmatically using the
+     ConfigManager and MacroVariableConfig classes.

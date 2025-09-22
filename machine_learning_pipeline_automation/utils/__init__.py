@@ -5,6 +5,8 @@ This package provides unified interfaces for:
 - File I/O operations (CSV and Parquet)
 - Data partitioning (train/test/validation splits)
 - Metadata management (variable types, roles, properties)
+- Configuration management (macro variables, project settings)
+- SAS to Python translation utilities
 
 Usage Examples:
     # Data loading
@@ -30,6 +32,16 @@ Usage Examples:
     
     # Type detection
     types = detect_variable_types(data)
+
+    # Configuration management
+    from utils import ConfigManager, MacroVariableConfig
+    config_mgr = ConfigManager()
+    config_mgr.load_project_config()
+    macro_config = config_mgr.setup_macro_variables()
+
+    # SAS variable resolution
+    interval_vars = macro_config.resolve_variable('dm_interval_input')
+    target_var = macro_config.resolve_variable('dm_dec_target')
 """
 
 # Import main classes
@@ -56,6 +68,17 @@ from .metadata import (
     detect_variable_types
 )
 
+from .macro_variables import (
+    MacroVariableConfig,
+    MacroVariableError
+)
+
+from .config import (
+    ConfigManager,
+    ProjectConfig,
+    ConfigurationError
+)
+
 # Define public API
 __all__ = [
     # Data I/O
@@ -76,7 +99,14 @@ __all__ = [
     'VariableInfo',
     'MetadataError',
     'analyze_data',
-    'detect_variable_types'
+    'detect_variable_types',
+
+    # Configuration and Macro Variables
+    'MacroVariableConfig',
+    'MacroVariableError',
+    'ConfigManager',
+    'ProjectConfig',
+    'ConfigurationError'
 ]
 
 # Package metadata
