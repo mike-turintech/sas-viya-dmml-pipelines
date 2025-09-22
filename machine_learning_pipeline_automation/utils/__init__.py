@@ -32,13 +32,13 @@ Usage Examples:
     
     # Type detection
     types = detect_variable_types(data)
-    
+
     # Configuration management
     from utils import ConfigManager, MacroVariableConfig
     config_mgr = ConfigManager()
     config_mgr.load_project_config()
     macro_config = config_mgr.setup_macro_variables()
-    
+
     # SAS variable resolution
     interval_vars = macro_config.resolve_variable('dm_interval_input')
     target_var = macro_config.resolve_variable('dm_dec_target')
@@ -100,12 +100,12 @@ __all__ = [
     'MetadataError',
     'analyze_data',
     'detect_variable_types',
-    
+
     # Configuration and Macro Variables
     'MacroVariableConfig',
     'MacroVariableError',
     'ConfigManager',
-    'ProjectConfig', 
+    'ProjectConfig',
     'ConfigurationError'
 ]
 
